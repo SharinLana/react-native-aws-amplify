@@ -1,6 +1,5 @@
 ## AWS Amplify + React Native Demo App
-
-### A Step-By-Step Guide (assuming that the developer already has an AWS account)
+A Step-By-Step Guide (assuming that the developer already has an AWS account)
 
 ### Set up fullstack project (with Expo CLI)
 
