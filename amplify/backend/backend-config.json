@@ -7,7 +7,9 @@
           "additionalAuthenticationProviders": [],
           "defaultAuthentication": {
             "apiKeyConfig": {
-              "apiKeyExpirationDays": 7
+              "apiKeyExpirationDate": "2023-09-03T20:50:56.468Z",
+              "apiKeyExpirationDays": 7,
+              "description": "AKIAUVL4INO47NTUF6UM"
             },
             "authenticationType": "API_KEY"
           }
@@ -41,6 +43,13 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
+    }
+  },
+  "storage": {
+    "s399b141b1": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
     }
   }
 }

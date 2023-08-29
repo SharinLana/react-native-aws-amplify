@@ -1,0 +1,14 @@
+{
+  "resourceName": "s399b141b1",
+  "policyUUID": "99b141b1",
+  "bucketName": "amplifiedshop04befe3437364ed39052224f535f2314",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

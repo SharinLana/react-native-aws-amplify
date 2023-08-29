@@ -1,4 +1,5 @@
 ## AWS Amplify + React Native Demo App
+
 A Step-By-Step Guide (assuming that the developer already has an AWS account)
 
 ### Set up fullstack project (with Expo CLI)
@@ -88,10 +89,10 @@ amplify add api
 
 ```
 
-2. View the result (GraphQL model) by following the path:
+3. View the result (GraphQL model) by following the path:
    amplify/backend/api/schema.graphql
 
-3. To deploy this backend, run the command:
+4. To deploy the backend with a default schema, run the command:
 
 ```
 amplify push
@@ -135,17 +136,28 @@ amplify console api
 
 ```
 
+6. If you want to update the graphql schema, you can edit amplify/backend/api/schema.graphql and run the command:
+
+```
+amplify push --allow-destructive-graphql-schema-updates
+
+```
+
+This should update the DynamoDB tables and graphql statements.
+Check the result by running amplify api console.
+And also check the files in the src/graphql directory
+
 ### Adding Authentication to the project
 
 1. Run the command:
 
-``` amplify add auth ```
+`amplify add auth`
 
 2. Select the defaults for the following prompts:
 
 ```
 ? Do you want to use the default authentication and security configuration? Default configuration
-Warning: you will not be able to edit these selections. 
+Warning: you will not be able to edit these selections.
 ? How do you want users to be able to sign in? Username
 ? Do you want to configure advanced settings? No, I am done.
 
@@ -153,9 +165,9 @@ Warning: you will not be able to edit these selections.
 
 3. Deploy:
 
-``` amplify push ```
+`amplify push`
 
-``` amplify console ```
+`amplify console`
 
 4. Install Amplify UI:
 

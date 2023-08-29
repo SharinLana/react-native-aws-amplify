@@ -1,4 +1,4 @@
-import { StatusBar } from "expo-status-bar";
+import { QueryClientProvider, QueryClient } from "react-query";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Button } from "react-native-elements";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -17,10 +17,12 @@ import AddProductScreen from "./src/screens/AddProductScreen";
 Amplify.configure(awsExports);
 
 const Stack = createNativeStackNavigator();
+const queryClient = new QueryClient();
+
 
 const App = () => {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <NavigationContainer>
         <Stack.Navigator initialRoute="Home">
           <Stack.Screen
@@ -59,7 +61,7 @@ const App = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
-    </>
+    </QueryClientProvider>
   );
 };
 
