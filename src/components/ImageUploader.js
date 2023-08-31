@@ -1,12 +1,10 @@
 import React from "react";
 import { View, Image, Button, StyleSheet } from "react-native";
 
-const ImageUploader = ({ images, onPickImage }) => {
+const ImageUploader = ({ imageUri, onPickImage }) => {
   return (
     <View style={styles.imageView}>
-      {images.length > 0 && (
-        <Image source={{ uri: images[0] }} style={styles.photo} />
-      )}
+      {imageUri && <Image source={{ uri: imageUri }} style={styles.photo} />}
       <Button
         style={styles.photoBtn}
         title="Choose Photo"

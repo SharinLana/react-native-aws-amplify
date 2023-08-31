@@ -1,12 +1,12 @@
 import { useQuery } from "react-query";
-import { fetchAllProducts } from "../api/products";
+import { fetchAllProducts } from "../api/product-apis";
 
-export function useAllProducts() {
-  const { data, ...rest } = useQuery({
-    queryKey: ["all-products"],
+export function useFetchAllProducts() {
+  const {data} =  useQuery({
+    queryKey: "all-products",
     queryFn: () => fetchAllProducts(),
   });
 
-  return { data: data?.data?.listProducts?.items, ...rest };
+  return { data: data?.data.listProducts?.items };
 }
 

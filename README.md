@@ -283,3 +283,366 @@ const App = () => {
 };
 
 ```
+
+#### READ - WRITE DATA: a List of Product Cards with 1 Image Per Card
+
+1. In src/screens/AddProductScreen.js, create a Form using a desired library, make sure you can get the entered values of the inputs.
+
+2. Install expo-image-picker library
+
+3. In the hooks/use-image-picker.js, create a custom hook useImagePicker() that will return 2 properties: a URI of the picked image + a function that picks an image
+
+4. In src/screens/AddProductScreen.js, create a new component to immediately display the picked (but not yet uploaded) image (<ImageUploader />).
+   Then pass the destructured properties of the useImagePicker() to this component.
+
+src/screens/AddProductScreen.js
+
+```
+import { useImagePicker } from "../../hooks/use-image-picker";
+
+const AddProductScreen = ({ navigation }) => {
+  const { image, pick } = useImagePicker();
+
+  return (
+    ...
+    <ImageUploader image={image} onPickImage={pick} />
+    ...
+  )
+}
+
+```
+
+src/components/ImageUploader.js
+
+```
+const ImageUploader = ({ image, onPickImage }) => {
+  return (
+    <View style={styles.imageView}>
+      {image && (
+        <Image source={{ uri: image }} style={styles.photo} />
+      )}
+      <Button
+        style={styles.photoBtn}
+        title="Choose Photo"
+        onPress={onPickImage}
+      />
+    </View>
+  );
+};
+
+```
+
+5. Now it's time to start creating a custom useQuery hook that will collect the form data and pass it to the Amplify GraphQL DB.
+
+hooks/use-create-product.js
+
+```
+import { useMutation, useQueryClient } from "react-query";
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    <!-- newProductData = entered form data -->
+    mutationFn: async (newProductData) => {
+      <!-- 1. Save the data to the DB -->
+      <!-- 2. If the entered data has an image, save it in the Amplify Storage -->
+
+      <!-- Fetch the data from the DB immediately - the old one along with the new. To view the correct object structure, go to src/graphql/queries.js -->
+      queryClient.setQueryData("all-products", (oldData) => {
+        return {
+          data: {
+            listProducts: {
+              ...oldData.data.listProducts,
+              items: [...oldData.data.listProducts.items, newProductData],
+            },
+          },
+        };
+      });
+    },
+  });
+}
+
+```
+
+5a. Inside of the useCreateProduct() hook, invoke a method that will make the POST request to the Amplify server. The method itself will be created on the next step. At this time, just import and invoke it (I marked the new lines of code with \*):
+
+hooks/use-create-product.js
+
+```
+import { useMutation, useQueryClient } from "react-query";
+* import { fetchCreateProduct } from "../api/product-apis";
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newProductData) => {
+    * await fetchCreateProduct({ ...newProductData });
+
+      <!-- 2. If the entered data has an image, save it in the Amplify Storage -->
+
+      queryClient.setQueryData("all-products", (oldData) => {
+        return {
+          data: {
+            listProducts: {
+              ...oldData.data.listProducts,
+              items: [...oldData.data.listProducts.items, newProductData],
+            },
+          },
+        };
+      });
+    },
+  });
+}
+
+```
+
+5b. In api/product-apis.js, create the fetchCreateProduct() method.
+The lines marked with ==//==//== will be filled out later
+
+```
+import { API, graphqlOperation } from "aws-amplify";
+import { createProduct } from "../src/graphql/mutations";
+
+export function fetchCreateProduct(product) {
+  const newProduct = {
+    name: product.name,
+    price: product.price,
+    description: product.description,
+    userId: ==//==//==
+    userName: ==//==//==
+    image: ==//==//==
+  };
+
+  <!-- The createProduct method was automatically created by Amplify. We just need to use it -->
+
+  return API.graphql(graphqlOperation(createProduct, { input: newProduct }));
+}
+
+```
+
+5c. SAVE IMAGE. Now let's get back to the useCreateProduct() hook and add a new method to save the uploaded image to the DB. The saving method will be created on the next step. At this time, just import and call it, passing the image data (uri) in.
+NOTE: New lines of code are marked with \*
+
+hooks/use-create-product.js
+
+```
+import { useMutation, useQueryClient } from "react-query";
+* import { fetchCreateProduct, saveProductImage } from "../api/product-apis";
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newProductData) => {
+      await fetchCreateProduct({ ...newProductData });
+
+    * if (newProductData.image) {
+      await saveProductImage(newProductData.image);
+      }
+
+      queryClient.setQueryData("all-products", (oldData) => {
+        return {
+          data: {
+            listProducts: {
+              ...oldData.data.listProducts,
+              items: [...oldData.data.listProducts.items, newProductData],
+            },
+          },
+        };
+      });
+    },
+  });
+}
+
+```
+
+5d. In the fetchCreateProduct() method, add value to the image property.
+And create a method that will save the uploaded image to the DB.
+NOTE: New lines of code are marked with \*
+The lines marked with ==//==//== will be filled out later
+
+```
+import { API, graphqlOperation } from "aws-amplify";
+import { createProduct } from "../src/graphql/mutations";
+
+export function fetchCreateProduct(product) {
+  const newProduct = {
+    name: product.name,
+    price: product.price,
+    description: product.description,
+    userId: ==//==//==
+    userName: ==//==//==
+  * image: product.image ? product.image : "",
+  };
+
+  <!-- The createProduct method was automatically created by Amplify. We just need to use it -->
+
+  return API.graphql(graphqlOperation(createProduct, { input: newProduct }));
+}
+
+* export async function saveProductImage(uri) {
+    const imageResponse = await fetch(uri);
+    const blob = await imageResponse.blob();
+
+    await Storage.put(uri, blob, {
+      contentType: "image/jpeg",
+    });
+  }
+
+
+```
+
+5e. SAVE USER DATA. Get back to the useCreateProduct() hook in the hooks/use-create-product.
+We need to pass in the data of the user who is trying to make this POST request. In particular, we are interested in the username and id.
+The useUser() method will be created on the next step, now just import, invoke it and pass its properties to the fetchCreateProduct() method.
+NOTE: New lines of code are marked with \*
+
+hooks/use-create-product.js
+
+```
+import { useMutation, useQueryClient } from "react-query";
+import { fetchCreateProduct, saveProductImage } from "../api/product-apis";
+* import { useUser } from "./use-user";
+
+export function useCreateProduct() {
+* const { data: user } = useUser();
+* <!-- user.username = user name, user.attributes.sub = user id -->
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newProductData) => {
+    * await fetchCreateProduct({ ...newProductData }, user.username, user.attributes.sub);
+
+      if (newProductData.image) {
+      await saveProductImage(newProductData.image);
+      }
+
+      queryClient.setQueryData("all-products", (oldData) => {
+        return {
+          data: {
+            listProducts: {
+              ...oldData.data.listProducts,
+              items: [...oldData.data.listProducts.items, newProductData],
+            },
+          },
+        };
+      });
+    },
+  });
+}
+
+```
+
+5f. In the hooks/use-user.js, create a method to get the current authenticated user:
+
+```
+import { useQuery } from "react-query";
+import { Auth } from "aws-amplify";
+
+export function useUser() {
+  return useQuery({
+    queryKey: "user",
+    queryFn: () => Auth.currentAuthenticatedUser({ bypassCache: true }),
+  });
+}
+
+```
+
+6. Invoke the useCreateProduct() useQuery hook inside of the AddProductScreen component and pass the entered values and the image uri to its "mutate" property on submit:
+
+src/screens/AppProductScree.js
+
+```
+import { useCreateProduct } from "../../hooks/use-create-product";
+
+const AddProductScreen = ({ navigation }) => {
+  const { image, pick } = useImagePicker();
+* const { mutate: createProduct } = useCreateProduct();
+
+  const {control, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      name: "",
+      price: 0.0,
+      description: "",
+    },
+  });
+
+  const onSubmit = async ({ name, price, description }) => {
+    const newProduct = {
+      name,
+      price: Number(price),
+      description,
+      image: image ? image : "",
+    };
+
+    createProduct(newProduct);
+  };
+
+  return (
+    ...
+  )
+```
+
+7. READING the data.
+
+7a. In the api/product-apis.js.:
+- Import listProducts controller.
+- Create a function to fetch the data from the DB
+
+```
+import { listProducts } from "../src/graphql/queries";
+
+export async function fetchAllProducts() {
+  return await API.graphql(graphqlOperation(listProducts));
+}
+
+```
+
+7b. In the hooks folder, create a new file use-all-products.js with a useQuery fetching fn, that uses the fetchAllProducts() method created on the previous step
+
+hooks/use-all-products.js
+
+```
+import { useQuery } from "react-query";
+import { fetchAllProducts } from "../api/product-apis";
+
+export function useFetchAllProducts() {
+  const {data} =  useQuery({
+    queryKey: "all-products",
+    queryFn: () => fetchAllProducts(),
+  });
+
+  return { data: data?.data.listProducts?.items };
+}
+
+```
+
+7c. Use this hook inside of the component to fetch all products:
+
+src/screens/HomeScreen.js
+
+```
+import React from "react";
+import { SafeAreaView, StatusBar } from "react-native";
+import ProductListComponent from "../components/ProductList";
+import { useFetchAllProducts } from "../../hooks/use-all-products";
+
+const HomeScreen = () => {
+  const { data } = useFetchAllProducts();
+
+  return (
+    <>
+      <StatusBar barStyle="dark-content" />
+      <SafeAreaView>
+        <ProductListComponent data={data} />
+      </SafeAreaView>
+    </>
+  );
+};
+
+export default HomeScreen;
+
+```

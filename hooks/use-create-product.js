@@ -1,18 +1,34 @@
-import { useQuery, useMutation, useQueryClient } from "react-query";
-import { addNewProductToDB } from "../api/products";
+import { fetchCreateProduct, saveProductImage } from "../api/product-apis";
+import { useMutation, useQueryClient } from "react-query";
+import { useUser } from "./use-user";
 
-export const useAddProductToDB = () => {
+export function useCreateProduct() {
+  const { data: user } = useUser();
   const queryClient = useQueryClient();
 
-  return useMutation(addNewProductToDB, {
-    onSuccess: (data) => {
-      // queryClient.invalidateQueries("super-heroes"); // use the key from the func that fetches all the heroes
-      queryClient.setQueryData("all-products", (oldQueryData) => {
+  return useMutation({
+    mutationFn: async (newProductData) => {
+      await fetchCreateProduct({ ...newProductData }, user.username, user.attributes.sub);
+      // console.log("Data : \n")
+      // console.log(newProductData);
+      // console.log("DB Response in the hooks/use-create-product.js: \n");
+      // console.log(createData);
+      if (newProductData.image) {
+        await saveProductImage(newProductData.image);
+      }
+
+      queryClient.setQueryData("all-products", (oldData) => {
+        // console.log("Old data: \n");
+        // console.log(oldData) // undefined
         return {
-          ...oldQueryData, // the data from cache
-          data: [...oldQueryData.data, data.data],
+          data: {
+            listProducts: {
+              ...oldData.data.listProducts,
+              items: [...oldData.data.listProducts.items, newProductData],
+            },
+          },
         };
       });
     },
   });
-};
+}

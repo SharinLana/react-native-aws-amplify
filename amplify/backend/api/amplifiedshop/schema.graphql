@@ -6,7 +6,7 @@ type Product @model {
   id: ID!
   name: String!
   description: String
-  price: String
+  price: Float
   userId: String
   userName: String
   image: String

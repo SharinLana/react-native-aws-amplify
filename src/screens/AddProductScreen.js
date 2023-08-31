@@ -1,30 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, SafeAreaView, View } from "react-native";
 import { Input, Button } from "@rneui/themed";
 import { Controller, useForm } from "react-hook-form";
-import { useAddProductToDB } from "../../hooks/use-create-product";
+
 import ImageUploader from "../components/ImageUploader";
 import { useImagePicker } from "../../hooks/use-image-picker";
 
-const AddProductScreen = ({ navigation }) => {
-  const { images, pick } = useImagePicker();
-  const { mutate: addProduct } = useAddProductToDB();
+import { useCreateProduct } from "../../hooks/use-create-product";
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
+const AddProductScreen = ({ navigation }) => {
+  const { imageUri, pick } = useImagePicker();
+  const { mutate: createProduct } = useCreateProduct();
+
+  const {control, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       name: "",
-      price: "",
+      price: 0.0,
       description: "",
-      image: "",
     },
   });
 
   const onSubmit = async ({ name, price, description }) => {
-    addProduct({ name, price, description });
+    const newProduct = {
+      name,
+      price: Number(price),
+      description,
+      image: imageUri ? imageUri : "",
+    };
+
+    createProduct(newProduct);
   };
 
   return (
@@ -61,27 +65,23 @@ const AddProductScreen = ({ navigation }) => {
             Title cannot be longer than 20 characters
           </Text>
         )}
-
         {/* Product price */}
         <View style={styles.inputContainer}>
           <Controller
             control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
+            name="price"
+            rules={{ required: true }}
+            render={({ field: { value, onChange, onBlur } }) => (
               <Input
                 label="Price"
-                placeholder="Add price"
-                onBlur={onBlur}
+                value={value.toString()}
                 onChangeText={onChange}
-                value={value}
-                style={styles.inputField}
+                onBlur={onBlur}
               />
             )}
-            name="price"
           />
         </View>
-
         {/* Description */}
-        {/* Product price */}
         <View style={styles.inputContainer}>
           <Controller
             control={control}
@@ -99,8 +99,7 @@ const AddProductScreen = ({ navigation }) => {
         </View>
 
         {/* Add image button */}
-        <ImageUploader images={images} onPickImage={pick} />
-
+        <ImageUploader imageUri={imageUri} onPickImage={pick} />
         <Button
           title="Add"
           onPress={handleSubmit(onSubmit)}

@@ -3,6 +3,7 @@ import { SafeAreaView, StatusBar, Text, FlatList } from "react-native";
 import ProductCard from "./ProductCard";
 
 const ProductListComponent = ({ data }) => {
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -12,11 +13,13 @@ const ProductListComponent = ({ data }) => {
             keyExtractor={(item) => item.id}
             data={data}
             renderItem={({ item }) => {
+           
               return (
                 <ProductCard
                   productName={item.name}
                   productPrice={item.price}
                   productDescription={item.description}
+                  productImage={item.image}
                 />
               );
             }}

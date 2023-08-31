@@ -1,13 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { Text, StyleSheet, View } from "react-native";
-import { Card, Icon, Image } from "react-native-elements";
-import { Storage } from "aws-amplify";
+import React from "react";
+import { Text, StyleSheet } from "react-native";
+import { Card, Image } from "react-native-elements";
 
-const ProductCard = ({ productName, productDescription, productPrice }) => {
+const ProductCard = ({
+  productName,
+  productDescription,
+  productPrice,
+  productImage,
+}) => {
   return (
     <Card containerStyle={styles.cardContainer}>
       <Card.Title style={styles.cardTitle}>{productName}</Card.Title>
-      <Card.Divider />
+
+      {productImage && (
+        <Image source={{ uri: productImage }} style={styles.productImage} />
+      )}
+
+      <Card.Divider style={styles.divider} />
       <Text>{productDescription}</Text>
       <Text style={styles.productPrice}>{productPrice}$</Text>
     </Card>
@@ -16,6 +25,9 @@ const ProductCard = ({ productName, productDescription, productPrice }) => {
 
 const styles = StyleSheet.create({
   cardContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: {
@@ -24,13 +36,14 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-
     elevation: 5,
   },
   productImage: {
     width: 200,
     height: 200,
-    alignSelf: "center",
+  },
+  divider: {
+    marginTop: 15,
   },
   productPrice: {
     marginTop: 10,
